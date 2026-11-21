@@ -1,0 +1,46 @@
+
+name: Build Calculator for All Platforms
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: |
+          npm run build-win
+        if: runner.os == 'Windows'
+
+      - name: Build Linux
+        run: npm run build-linux
+        if: runner.os == 'Linux'
+
+      - name: Build macOS
+        run: npm run build-mac
+        if: runner.os == 'macOS'
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculator-${{ runner.os }}
+          path: dist/*
